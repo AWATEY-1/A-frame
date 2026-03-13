@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ranch Night Scene</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; background: #000; }
+.info {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,200,80,0.25);
+  padding: 11px 15px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #f0d080;
+  font-family: Georgia, serif;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+  backdrop-filter: blur(4px);
+}
+.info b { color: #ffd700; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="info">
+  <b>🌙 NIGHT RANCH</b><br>
+  Drag · Scroll to zoom
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ── SCENE ──────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05080f);
+scene.fog = new THREE.FogExp2(0x080c18, 0.018);
+
+// ── CAMERA ─────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 600);
+camera.position.set(0, 5, 10);
+
+// ── RENDERER ───────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.6;
+document.body.appendChild(renderer.domElement);
+
+// ── CONTROLS ───────────────────────────────────────────────────
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 3;
+controls.maxDistance = 50;
+controls.maxPolarAngle = Math.PI / 2.05;
+
+// ── LIGHTS ─────────────────────────────────────────────────────
+// Faint cool ambient (moonlight)
+scene.add(new THREE.AmbientLight(0x3a5a80, 1.8));
+
+// Moonlight – directional, blue-white
+const moon = new THREE.DirectionalLight(0x99bbee, 1.6);
+moon.position.set(-15, 25, -10);
+moon.castShadow = true;
+moon.shadow.mapSize.set(2048, 2048);
+moon.shadow.camera.near = 1;
+moon.shadow.camera.far = 100;
+moon.shadow.camera.left = -25;
+moon.shadow.camera.right = 25;
+moon.shadow.camera.top = 25;
+moon.shadow.camera.bottom = -25;
+scene.add(moon);
+
+// Warm lantern glow above table
+const lanternLight = new THREE.PointLight(0xffaa33, 8, 14, 2);
+lanternLight.position.set(0, 2.1, 0);
+lanternLight.castShadow = true;
+scene.add(lanternLight);
+
+// Water bounce light (cool blue)
+const waterLight = new THREE.PointLight(0x4488dd, 1.8, 16, 2);
+waterLight.position.set(-11, 0.4, -6);
+scene.add(waterLight);
+
+// Second moonlight fill from opposite side
+const moonFill = new THREE.DirectionalLight(0x8899bb, 0.9);
+moonFill.position.set(10, 15, 8);
+scene.add(moonFill);
+
+// Wide overhead fill so cattle and trees are visible
+const overheadFill = new THREE.HemisphereLight(0x4466aa, 0x223311, 1.2);
+scene.add(overheadFill);
+
+// ── STARS ──────────────────────────────────────────────────────
+(function() {
+  const geo = new THREE.BufferGeometry();
+  const verts = [];
+  for (let i = 0; i < 2200; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = 200 + Math.random() * 80;
+    verts.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      Math.abs(r * Math.cos(phi)) + 10,
+      r * Math.sin(phi) * Math.sin(theta)
+    );
+  }
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  scene.add(new THREE.Points(geo,
+    new THREE.PointsMaterial({ color: 0xffffff, size: 0.4, sizeAttenuation: true, transparent: true, opacity: 0.9 })
+  ));
+})();
+
+// ── MOON DISC ──────────────────────────────────────────────────
+const moonDisc = new THREE.Mesh(
+  new THREE.CircleGeometry(5, 64),
+  new THREE.MeshBasicMaterial({ color: 0xccdcff, transparent: true, opacity: 0.88 })
+);
+moonDisc.position.set(-80, 100, -150);
+scene.add(moonDisc);
+
+// ── GROUND ─────────────────────────────────────────────────────
+const groundMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(140, 140),
+  new THREE.MeshStandardMaterial({ color: 0x182210, roughness: 1 })
+);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+scene.add(groundMesh);
+
+// ── SHARED MATERIALS ───────────────────────────────────────────
+const fenceMat = new THREE.MeshStandardMaterial({ color: 0x7a4a1e, roughness: 0.9 });
+const woodMat  = new THREE.MeshStandardMaterial({ color: 0x7a3a18, roughness: 0.85 });
+const poleMat  = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.7, metalness: 0.4 });
+
+// ── HELPERS ────────────────────────────────────────────────────
+function box(w, h, d, mat, x, y, z, ry) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  if (ry) m.rotation.y = ry;
+  m.castShadow = true;
+  m.receiveShadow = true;
+  scene.add(m);
+  return m;
+}
+function cyl(rt, rb, h, seg, mat, x, y, z) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  scene.add(m);
+  return m;
+}
+
+// ── FENCE ENCLOSURE ────────────────────────────────────────────
+function fenceSide(len, x, z, ry) {
+  box(len, 0.12, 0.09, fenceMat, x, 0.42, z, ry);
+  box(len, 0.12, 0.09, fenceMat, x, 0.22, z, ry);
+}
+fenceSide(6,  0,  3,  0);
+fenceSide(6,  0, -3,  0);
+fenceSide(6,  3,  0,  Math.PI/2);
+fenceSide(6, -3,  0,  Math.PI/2);
+
+const postGeo = new THREE.BoxGeometry(0.14, 0.6, 0.14);
+[-3,-1.5,0,1.5,3].forEach(x => {
+  let p1 = new THREE.Mesh(postGeo, fenceMat); p1.position.set(x, 0.3,  3); scene.add(p1);
+  let p2 = new THREE.Mesh(postGeo, fenceMat); p2.position.set(x, 0.3, -3); scene.add(p2);
+});
+[-3,-1.5,0,1.5,3].forEach(z => {
+  let p3 = new THREE.Mesh(postGeo, fenceMat); p3.position.set( 3, 0.3, z); scene.add(p3);
+  let p4 = new THREE.Mesh(postGeo, fenceMat); p4.position.set(-3, 0.3, z); scene.add(p4);
+});
+
+// ── TABLE ──────────────────────────────────────────────────────
+box(1, 0.08, 1, woodMat, 0, 0.6, 0);
+[[-0.4,-0.4],[0.4,-0.4],[-0.4,0.4],[0.4,0.4]].forEach(([x,z]) => {
+  cyl(0.05,0.05,0.6,12, woodMat, x, 0.3, z);
+});
+
+// ── CHAIRS (2) ─────────────────────────────────────────────────
+function createChair(x, z, ry) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: 0x4a2e15, roughness: 0.9 });
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.4), mat); seat.position.y = 0.35;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.05), mat); back.position.set(0, 0.6, -0.18);
+  const legs = [[-0.16,-0.16],[ 0.16,-0.16],[-0.16, 0.16],[ 0.16, 0.16]];
+  legs.forEach(([lx,lz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.35,0.05), mat);
+    leg.position.set(lx, 0.17, lz);
+    g.add(leg);
+  });
+  g.add(seat); g.add(back);
+  g.position.set(x, 0, z); g.rotation.y = ry;
+  g.traverse(c => { if (c.isMesh) { c.castShadow = true; } });
+  scene.add(g);
+}
+createChair(0, -1.2, 0);
+createChair(0,  1.2, Math.PI);
+
+// ── MILO TIN ───────────────────────────────────────────────────
+cyl(0.08,0.08,0.18,32, new THREE.MeshStandardMaterial({ color: 0x1f5f2d, roughness: 0.6 }), -0.25, 0.72, 0);
+
+// ── CUPS ───────────────────────────────────────────────────────
+const cupMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.3, metalness: 0.1 });
+cyl(0.055,0.045,0.1,24, cupMat,  0.25, 0.69, -0.2);
+cyl(0.055,0.045,0.1,24, cupMat,  0.25, 0.69,  0.2);
+
+// ── LANTERN ON TABLE ───────────────────────────────────────────
+// Hanging lantern body above tent
+const lanternMat   = new THREE.MeshStandardMaterial({ color: 0x553300, roughness: 0.5, metalness: 0.5 });
+const lanternGlass = new THREE.MeshStandardMaterial({ color: 0xffcc44, emissive: 0xffaa00, emissiveIntensity: 2.5, transparent: true, opacity: 0.85 });
+const lanternBody  = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.28, 16), lanternGlass);
+lanternBody.position.set(0, 1.88, 0);
+scene.add(lanternBody);
+const lanternTop = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.13, 0.08, 16), lanternMat);
+lanternTop.position.set(0, 2.06, 0);
+scene.add(lanternTop);
+const lanternBot = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.02, 0.08, 16), lanternMat);
+lanternBot.position.set(0, 1.70, 0);
+scene.add(lanternBot);
+// Chain
+const chainMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8 });
+const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.3,8), chainMat);
+chain.position.set(0, 2.26, 0);
+scene.add(chain);
+
+// ── TENT ───────────────────────────────────────────────────────
+const tentMat = new THREE.MeshStandardMaterial({
+  color: 0xcc3322,
+  side: THREE.DoubleSide,
+  roughness: 0.85
+});
+const tentRoof = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.1, 4), tentMat);
+tentRoof.position.set(0, 2.2, 0);
+tentRoof.rotation.y = Math.PI/4;
+tentRoof.castShadow = true;
+scene.add(tentRoof);
+
+// Tent poles
+[-1.5, 1.5].forEach(x => [-1.5, 1.5].forEach(z => {
+  cyl(0.05, 0.05, 2.2, 12, poleMat, x, 1.1, z);
+}));
+
+// ── TREES ──────────────────────────────────────────────────────
+function createTree(x, z, h) {
+  const trunkH = h * 0.55;
+  const trunkR = 0.09 + h * 0.01;
+  cyl(trunkR, trunkR * 1.2, trunkH, 10,
+    new THREE.MeshStandardMaterial({ color: 0x6b3a1f, roughness: 1 }),
+    x, trunkH / 2, z);
+  cyl(h * 0.35, 0.05, h * 0.65, 8,
+    new THREE.MeshStandardMaterial({ color: 0x1a3d18, roughness: 1 }),
+    x, trunkH + h * 0.3, z);
+}
+[[-7,-5],[-7,4],[7,-5],[7,4],[1,7],[-1,-7],[5,8],[-5,8],[9,-1],[-9,2]].forEach(([x,z]) => {
+  createTree(x, z, 1.4 + Math.random() * 0.8);
+});
+
+// ── LAKE / WATER ────────────────────────────────────────────────
+// Water surface
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x0a1a3a,
+  roughness: 0.05,
+  metalness: 0.15,
+  transparent: true,
+  opacity: 0.88,
+  emissive: 0x051025,
+  emissiveIntensity: 0.4
+});
+const water = new THREE.Mesh(new THREE.CircleGeometry(5.5, 64), waterMat);
+water.rotation.x = -Math.PI / 2;
+water.position.set(-11, 0.01, -6);
+water.receiveShadow = true;
+scene.add(water);
+
+// Shore edge (slightly raised dirt ring)
+const shoreMat = new THREE.MeshStandardMaterial({ color: 0x2a1e0a, roughness: 1 });
+const shore = new THREE.Mesh(new THREE.RingGeometry(5.5, 6.5, 64), shoreMat);
+shore.rotation.x = -Math.PI / 2;
+shore.position.set(-11, 0.005, -6);
+scene.add(shore);
+
+// Reeds around lake
+const reedMat = new THREE.MeshStandardMaterial({ color: 0x4a6a20, roughness: 1 });
+const angles = [0.2, 0.7, 1.2, 1.8, 2.5, 3.1, 3.9, 4.5, 5.1, 5.7];
+angles.forEach(a => {
+  const r = 5.2 + Math.random() * 0.6;
+  const rx = -11 + Math.cos(a) * r;
+  const rz = -6  + Math.sin(a) * r;
+  const rh = 0.6 + Math.random() * 0.5;
+  cyl(0.025, 0.02, rh, 6, reedMat, rx, rh/2, rz);
+  // Reed tip (seed head)
+  const tipMat = new THREE.MeshStandardMaterial({ color: 0x6b4a10, roughness: 1 });
+  cyl(0.04, 0.02, 0.12, 6, tipMat, rx, rh + 0.05, rz);
+});
+
+// Moonlight reflection patch on water
+const reflectionMat = new THREE.MeshBasicMaterial({ color: 0x7799bb, transparent: true, opacity: 0.25 });
+const reflection = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 3.5), reflectionMat);
+reflection.rotation.x = -Math.PI / 2;
+reflection.position.set(-13.5, 0.02, -5);
+scene.add(reflection);
+
+// ── CATTLE ─────────────────────────────────────────────────────
+function createCow(x, z, ry, colHex) {
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: colHex, roughness: 0.95 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.58, 0.5), bodyMat);
+  body.position.set(0, 0.68, 0);
+  body.castShadow = true;
+  g.add(body);
+
+  // Neck
+  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.35, 0.28), bodyMat);
+  neck.position.set(0.44, 0.86, 0);
+  neck.rotation.z = -0.25;
+  neck.castShadow = true;
+  g.add(neck);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.26), bodyMat);
+  head.position.set(0.65, 1.0, 0);
+  head.castShadow = true;
+  g.add(head);
+
+  // Snout
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.22), new THREE.MeshStandardMaterial({ color: 0xddaa88, roughness: 0.9 }));
+  snout.position.set(0.8, 0.95, 0);
+  g.add(snout);
+
+  // Ears
+  [-1,1].forEach(side => {
+    const ear = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.04), bodyMat);
+    ear.position.set(0.6, 1.14, side * 0.155);
+    ear.rotation.z = side * 0.3;
+    g.add(ear);
+  });
+
+  // Horns
+  [-1,1].forEach(side => {
+    const horn = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.03, 0.18, 8), new THREE.MeshStandardMaterial({ color: 0xddcc88 }));
+    horn.position.set(0.56, 1.17, side * 0.1);
+    horn.rotation.z = side * 0.5;
+    g.add(horn);
+  });
+
+  // Legs
+  [[ 0.3,-0.4],[ 0.3, 0.4],[-0.3,-0.4],[-0.3, 0.4]].forEach(([lx,lz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.45, 0.14), bodyMat);
+    leg.position.set(lx, 0.22, lz);
+    leg.castShadow = true;
+    g.add(leg);
+    // Hoof
+    const hoof = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.08, 0.15), darkMat);
+    hoof.position.set(lx, 0.0, lz);
+    g.add(hoof);
+  });
+
+  // Tail
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.01, 0.38, 6), bodyMat);
+  tail.position.set(-0.56, 0.72, 0);
+  tail.rotation.z = 0.6;
+  g.add(tail);
+  const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), darkMat);
+  tailTip.position.set(-0.72, 0.56, 0);
+  g.add(tailTip);
+
+  // Spots (dark patches on some cows)
+  if (Math.random() > 0.4) {
+    const spot = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32, 0.52), darkMat);
+    spot.position.set(0.1, 0.7, 0);
+    g.add(spot);
+  }
+
+  g.position.set(x, 0, z);
+  g.rotation.y = ry;
+  g.traverse(c => { if (c.isMesh) c.castShadow = true; });
+  scene.add(g);
+  return g;
+}
+
+// Place cattle around the scene – outside the fence, in background
+const cowData = [
+  [-7,  2,   0.4,  0x8b6640],
+  [-6, -2,   2.1,  0x3a2a1a],
+  [ 8,  3,  -0.8,  0xaaaaaa],
+  [ 6, -4,   1.2,  0x7a5030],
+  [-5,  6,   3.0,  0x8b6640],
+  [ 9,  0,   2.5,  0x222222],
+  [ 4,  9,  -1.5,  0xbbbbbb],
+  [-8, -6,   0.2,  0x5a3a20],
+];
+const cows = cowData.map(([x,z,ry,col]) => createCow(x, z, ry, col));
+
+// ── HAYBALES ───────────────────────────────────────────────────
+const hayMat = new THREE.MeshStandardMaterial({ color: 0xaa8820, roughness: 1 });
+[[5,-2],[5.8,-2.8],[-6,5],[-6.8,5.5]].forEach(([x,z]) => {
+  const bale = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.55,16), hayMat);
+  bale.rotation.z = Math.PI/2;
+  bale.position.set(x, 0.35, z);
+  bale.castShadow = true;
+  scene.add(bale);
+});
+
+// ── BARN (distant background) ──────────────────────────────────
+(function() {
+  const barnMat  = new THREE.MeshStandardMaterial({ color: 0x6a1a10, roughness: 0.9 });
+  const roofMat  = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.9 });
+  // Walls
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(5, 2.5, 3.5), barnMat);
+  wall.position.set(16, 1.25, -8);
+  wall.castShadow = true;
+  scene.add(wall);
+  // Roof ridge
+  const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 2.8, 5.2, 4), roofMat);
+  roof.rotation.y = Math.PI/4;
+  roof.position.set(16, 3.1, -8);
+  roof.castShadow = true;
+  scene.add(roof);
+  // Door
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.5, 0.1), new THREE.MeshStandardMaterial({ color: 0x2a0e05, roughness: 1 }));
+  door.position.set(16, 0.75, -6.7);
+  scene.add(door);
+  // Barn light (warm glow from inside)
+  const barnGlow = new THREE.PointLight(0xff9922, 2.5, 10, 2);
+  barnGlow.position.set(16, 1.5, -7);
+  scene.add(barnGlow);
+})();
+
+// ── EXTRA FENCE (ranch boundary far) ───────────────────────────
+(function() {
+  const posts = [[-12,-9],[-8,-9],[-4,-9],[0,-9],[4,-9],[8,-9],[12,-9]];
+  posts.forEach(([x,z]) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.8, 0.15), fenceMat);
+    post.position.set(x, 0.4, z);
+    scene.add(post);
+  });
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(24.3, 0.1, 0.08), fenceMat);
+  rail.position.set(0, 0.65, -9);
+  scene.add(rail);
+  const rail2 = new THREE.Mesh(new THREE.BoxGeometry(24.3, 0.1, 0.08), fenceMat);
+  rail2.position.set(0, 0.35, -9);
+  scene.add(rail2);
+})();
+
+// ── ANIMATE ────────────────────────────────────────────────────
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.01;
+
+  // Gentle lantern flicker
+  lanternLight.intensity = 7.5 + Math.sin(t * 3.7) * 0.6 + Math.sin(t * 7.1) * 0.3;
+
+  // Water shimmer
+  waterMat.emissiveIntensity = 0.3 + Math.sin(t * 1.2) * 0.12;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── RESIZE ─────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
