@@ -1,240 +1,621 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luxury Villa with Pool - A-Frame</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        .info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 1000;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury Villa</title>
+<script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 600px; overflow: hidden; font-family: Arial, sans-serif; }
+  #ui {
+    position: absolute; top: 12px; left: 12px; z-index: 999;
+    background: rgba(0,0,0,0.6); color: #fff;
+    padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.7;
+    pointer-events: none;
+  }
+  #ui strong { display: block; font-size: 15px; margin-bottom: 4px; letter-spacing: 0.3px; }
+  #tour-btn {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 999; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+    color: #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 13px;
+    backdrop-filter: blur(4px);
+  }
+  #tour-btn:hover { background: rgba(255,255,255,0.25); }
+</style>
 </head>
 <body>
-    <div class="info">
-        <h3>Luxury Villa Environment</h3>
-        <p>WASD to move • Mouse to look • Click to interact</p>
-    </div>
+<div id="ui">
+  <strong>Luxury Villa — 3D Tour</strong>
+  WASD / arrows to move &nbsp;|&nbsp; Mouse to look<br>
+  Click scene first to enable controls
+</div>
+<button id="tour-btn" onclick="startTour()">Auto Tour</button>
 
-    <a-scene 
-        background="color: #87CEEB" 
-        fog="type: linear; color: #87CEEB; far: 100; near: 0"
-        cursor="rayOrigin: mouse"
-        raycaster="objects: .clickable">
-        
-        <!-- Lighting -->
-        <a-light type="ambient" color="#404040" intensity="0.5"></a-light>
-        <a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.5" shadow="cast: true"></a-light>
-        <a-light type="point" position="0 10 0" color="#ffffff" intensity="0.3"></a-light>
-        
-        <!-- Environment -->
-        <a-sky color="#87CEEB"></a-sky>
-        
-        <!-- Ground -->
-        <a-plane 
-            position="0 0 0" 
-            rotation="-90 0 0" 
-            width="100" 
-            height="100" 
-            color="#90EE90"
-            shadow="receive: true">
-        </a-plane>
-        
-        <!-- Grass patches for more realistic ground -->
-        <a-plane 
-            position="0 0.01 0" 
-            rotation="-90 0 0" 
-            width="120" 
-            height="120" 
-            color="#7CFC00"
-            transparent="true"
-            opacity="0.3">
-        </a-plane>
-        
-        <!-- House Model -->
-        <a-entity 
-            gltf-model="#house-model" 
-            position="0 0 0"
-            scale="1 1 1"
-            shadow="cast: true; receive: true">
-        </a-entity>
-        
-        <!-- Pool -->
-        <a-box 
-            position="0 -0.5 8" 
-            width="8" 
-            height="1" 
-            depth="4" 
-            color="#006994"
-            transparent="true"
-            opacity="0.8">
-        </a-box>
-        
-        <!-- Pool Water Surface -->
-        <a-plane 
-            position="0 0 8" 
-            rotation="-90 0 0" 
-            width="8" 
-            height="4" 
-            color="#00BFFF"
-            transparent="true"
-            opacity="0.6"
-            animation="property: position; to: 0 0.05 8; dir: alternate; dur: 3000; loop: true">
-        </a-plane>
-        
-        <!-- Pool Deck -->
-        <a-plane 
-            position="0 -0.01 8" 
-            rotation="-90 0 0" 
-            width="12" 
-            height="8" 
-            color="#F5DEB3"
-            shadow="receive: true">
-        </a-plane>
-        
-        <!-- Pool Lounge Chairs -->
-        <a-box 
-            position="-3 0.5 8" 
-            width="2" 
-            height="0.1" 
-            depth="0.8" 
-            color="#8B4513"
-            rotation="0 0 0">
-        </a-box>
-        <a-box 
-            position="-3 1 8" 
-            width="2" 
-            height="0.8" 
-            depth="0.1" 
-            color="#4682B4"
-            rotation="45 0 0">
-        </a-box>
-        
-        <a-box 
-            position="3 0.5 8" 
-            width="2" 
-            height="0.1" 
-            depth="0.8" 
-            color="#8B4513"
-            rotation="0 0 0">
-        </a-box>
-        <a-box 
-            position="3 1 8" 
-            width="2" 
-            height="0.8" 
-            depth="0.1" 
-            color="#4682B4"
-            rotation="45 0 0">
-        </a-box>
-        
-        <!-- Palm Trees for decoration -->
-        <a-cylinder 
-            position="-15 2 -10" 
-            radius="0.5" 
-            height="4" 
-            color="#8B4513">
-        </a-cylinder>
-        <a-sphere 
-            position="-15 4 -10" 
-            radius="2" 
-            color="#228B22">
-        </a-sphere>
-        
-        <a-cylinder 
-            position="15 2 -10" 
-            radius="0.5" 
-            height="4" 
-            color="#8B4513">
-        </a-cylinder>
-        <a-sphere 
-            position="15 4 -10" 
-            radius="2" 
-            color="#228B22">
-        </a-sphere>
-        
-        <a-cylinder 
-            position="-15 2 10" 
-            radius="0.5" 
-            height="4" 
-            color="#8B4513">
-        </a-cylinder>
-        <a-sphere 
-            position="-15 4 10" 
-            radius="2" 
-            color="#228B22">
-        </a-sphere>
-        
-        <a-cylinder 
-            position="15 2 10" 
-            radius="0.5" 
-            height="4" 
-            color="#8B4513">
-        </a-cylinder>
-        <a-sphere 
-            position="15 4 10" 
-            radius="2" 
-            color="#228B22">
-        </a-sphere>
-        
-        <!-- Fence around property -->
-        <a-box 
-            position="-20 1 0" 
-            width="0.5" 
-            height="2" 
-            depth="40" 
-            color="#8B4513">
-        </a-box>
-        <a-box 
-            position="20 1 0" 
-            width="0.5" 
-            height="2" 
-            depth="40" 
-            color="#8B4513">
-        </a-box>
-        <a-box 
-            position="0 1 -20" 
-            width="40" 
-            height="2" 
-            depth="0.5" 
-            color="#8B4513">
-        </a-box>
-        <a-box 
-            position="0 1 20" 
-            width="40" 
-            height="2" 
-            depth="0.5" 
-            color="#8B4513">
-        </a-box>
-        
-        <!-- Camera with movement controls -->
-        <a-camera 
-            position="0 1.6 10" 
-            wasd-controls="acceleration: 20"
-            look-controls="pointerLockEnabled: true">
-        </a-camera>
-        
-        <!-- Assets -->
-        <a-assets>
-            <a-asset-item 
-                id="house-model" 
-                src="modern_luxury_villa_house_building_with_pool.glb">
-            </a-asset-item>
-        </a-assets>
-        
-    </a-scene>
+<a-scene embedded style="width:100%;height:600px;"
+  background="color: #5ba8d4"
+  fog="type: linear; color: #87CEEB; near: 40; far: 120"
+  shadow="type: pcfsoft">
+
+  <a-assets>
+    <a-mixin id="wall" geometry="primitive: box" material="color: #F0EDE8; roughness: 0.9; metalness: 0.05" shadow="cast: true; receive: true"></a-mixin>
+    <a-mixin id="glass" geometry="primitive: box" material="color: #A8D8EA; opacity: 0.35; transparent: true; roughness: 0.05; metalness: 0.2" shadow="cast: true"></a-mixin>
+    <a-mixin id="frame" geometry="primitive: box" material="color: #2C2C2A; roughness: 0.5; metalness: 0.6" shadow="cast: true"></a-mixin>
+  </a-assets>
+
+  <!-- SKY -->
+  <a-sky color="#87CEEB"></a-sky>
+
+  <!-- SUN -->
+  <a-light type="directional" position="20 30 10" intensity="1.1" color="#FFF5E0"
+    shadow="cast: true; shadowMapWidth: 2048; shadowMapHeight: 2048; shadowCameraFar: 200; shadowCameraLeft: -50; shadowCameraRight: 50; shadowCameraTop: 50; shadowCameraBottom: -50">
+  </a-light>
+  <a-light type="ambient" color="#C8D8E8" intensity="0.55"></a-light>
+  <a-light type="point" position="0 8 0" intensity="0.3" color="#FFF0D0"></a-light>
+
+  <!-- ========== GROUND ========== -->
+  <a-plane position="0 0 0" rotation="-90 0 0" width="120" height="120"
+    material="color: #7DC464; roughness: 1; metalness: 0" shadow="receive: true">
+  </a-plane>
+
+  <!-- Driveway -->
+  <a-plane position="0 0.01 28" rotation="-90 0 0" width="8" height="16"
+    material="color: #C8C2B8; roughness: 0.95" shadow="receive: true">
+  </a-plane>
+  <!-- Driveway to road -->
+  <a-plane position="0 0.01 40" rotation="-90 0 0" width="8" height="8"
+    material="color: #B8B2A8; roughness: 0.95" shadow="receive: true">
+  </a-plane>
+
+  <!-- ========== HOUSE STRUCTURE ========== -->
+  <!-- GROUND FLOOR MAIN BODY -->
+  <a-box mixin="wall" position="0 2 0" width="18" height="4" depth="12"></a-box>
+
+  <!-- GROUND FLOOR EXTENSION (rear wing) -->
+  <a-box mixin="wall" position="-4 2 -10" width="10" height="4" depth="8"></a-box>
+
+  <!-- UPPER FLOOR MAIN -->
+  <a-box mixin="wall" position="0 6.5 0" width="18" height="3" depth="12"></a-box>
+
+  <!-- UPPER FLOOR REAR WING (smaller) -->
+  <a-box mixin="wall" position="-4 6.5 -8" width="10" height="3" depth="4"></a-box>
+
+  <!-- FLAT ROOF MAIN -->
+  <a-box position="0 8.15 0" width="18.4" height="0.3" depth="12.4"
+    material="color: #D0CCC6; roughness: 0.95" shadow="cast: true; receive: true">
+  </a-box>
+
+  <!-- FLAT ROOF REAR -->
+  <a-box position="-4 8.15 -8" width="10.4" height="0.3" depth="4.4"
+    material="color: #D0CCC6; roughness: 0.95" shadow="cast: true; receive: true">
+  </a-box>
+
+  <!-- ROOF OVERHANG FRONT -->
+  <a-box position="0 8.1 7" width="18.4" height="0.2" depth="2"
+    material="color: #C8C4BE; roughness: 0.95" shadow="cast: true">
+  </a-box>
+
+  <!-- PARAPET / UPPER RAILING -->
+  <a-box position="0 8.5 6.2" width="18.4" height="0.7" depth="0.15"
+    material="color: #F0EDE8; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="9.2 8.5 0" width="0.15" height="0.7" depth="12.4"
+    material="color: #F0EDE8; roughness: 0.9">
+  </a-box>
+  <a-box position="-9.2 8.5 0" width="0.15" height="0.7" depth="12.4"
+    material="color: #F0EDE8; roughness: 0.9">
+  </a-box>
+
+  <!-- ========== LARGE GLASS FACADE (FRONT) ========== -->
+  <!-- Ground floor full glass front -->
+  <a-box mixin="glass" position="0 2 6.01" width="16" height="3.8" depth="0.08"></a-box>
+  <!-- Upper floor glass -->
+  <a-box mixin="glass" position="0 6.5 6.01" width="14" height="2.8" depth="0.08"></a-box>
+
+  <!-- Frame verticals ground floor -->
+  <a-box mixin="frame" position="-8 2 6.02" width="0.12" height="4" depth="0.1"></a-box>
+  <a-box mixin="frame" position="8 2 6.02" width="0.12" height="4" depth="0.1"></a-box>
+  <a-box mixin="frame" position="-2.67 2 6.02" width="0.1" height="4" depth="0.1"></a-box>
+  <a-box mixin="frame" position="2.67 2 6.02" width="0.1" height="4" depth="0.1"></a-box>
+  <!-- Frame horizontal -->
+  <a-box mixin="frame" position="0 4.05 6.02" width="16.2" height="0.1" depth="0.1"></a-box>
+  <a-box mixin="frame" position="0 0.05 6.02" width="16.2" height="0.1" depth="0.1"></a-box>
+  <!-- Frame verticals upper -->
+  <a-box mixin="frame" position="-7 6.5 6.02" width="0.1" height="3" depth="0.1"></a-box>
+  <a-box mixin="frame" position="7 6.5 6.02" width="0.1" height="3" depth="0.1"></a-box>
+  <a-box mixin="frame" position="0 6.5 6.02" width="0.1" height="3" depth="0.1"></a-box>
+
+  <!-- ========== SIDE WINDOWS ========== -->
+  <!-- Right side upper -->
+  <a-box mixin="glass" position="9.01 6.5 0" width="0.08" height="2" depth="8"></a-box>
+  <a-box mixin="frame" position="9.02 6.5 -4" width="0.1" height="2.1" depth="0.12"></a-box>
+  <a-box mixin="frame" position="9.02 6.5 4" width="0.1" height="2.1" depth="0.12"></a-box>
+  <!-- Right side ground -->
+  <a-box mixin="glass" position="9.01 2.5 -1" width="0.08" height="2.5" depth="6"></a-box>
+
+  <!-- Left side upper -->
+  <a-box mixin="glass" position="-9.01 6.5 0" width="0.08" height="2" depth="8"></a-box>
+  <!-- Left side ground -->
+  <a-box mixin="glass" position="-9.01 2.5 -1" width="0.08" height="2.5" depth="6"></a-box>
+
+  <!-- Rear wing windows -->
+  <a-box mixin="glass" position="-9.01 2 -10" width="0.08" height="2" depth="6"></a-box>
+  <a-box mixin="glass" position="-4 2 -14.01" width="8" height="2" depth="0.08"></a-box>
+
+  <!-- ========== FRONT DOOR ========== -->
+  <a-box position="3.5 1.5 6.05" width="1.6" height="2.8" depth="0.1"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.5" shadow="cast: true">
+  </a-box>
+  <!-- Door handle -->
+  <a-cylinder position="3.1 1.5 6.12" radius="0.04" height="0.3"
+    rotation="0 0 90" material="color: #C8A040; roughness: 0.3; metalness: 0.9">
+  </a-cylinder>
+
+  <!-- ========== ENTRANCE CANOPY ========== -->
+  <a-box position="3.5 3.3 8" width="3" height="0.15" depth="4"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.6" shadow="cast: true">
+  </a-box>
+  <a-box position="2 1.5 9.9" width="0.1" height="3" depth="0.1"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.8">
+  </a-box>
+  <a-box position="5 1.5 9.9" width="0.1" height="3" depth="0.1"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.8">
+  </a-box>
+
+  <!-- ========== TERRACE / PATIO FLOOR ========== -->
+  <a-plane position="0 0.02 12" rotation="-90 0 0" width="20" height="8"
+    material="color: #E8E0D4; roughness: 0.8" shadow="receive: true">
+  </a-plane>
+  <!-- Terrace pavers pattern -->
+  <a-plane position="0 0.025 12" rotation="-90 0 0" width="20" height="8"
+    material="color: #DDD5C9; roughness: 0.85; wireframe: false" shadow="receive: true">
+  </a-plane>
+
+  <!-- ========== POOL ========== -->
+  <!-- Pool shell -->
+  <a-box position="0 -0.4 20" width="12" height="1.2" depth="6"
+    material="color: #2A6496; roughness: 0.3; metalness: 0.1" shadow="cast: true; receive: true">
+  </a-box>
+  <!-- Pool inner tiles -->
+  <a-plane position="0 0.01 20" rotation="-90 0 0" width="11.6" height="5.6"
+    material="color: #5BA8C8; roughness: 0.2; metalness: 0.1">
+  </a-plane>
+  <!-- Pool water surface animated -->
+  <a-plane position="0 0.2 20" rotation="-90 0 0" width="11.6" height="5.6"
+    material="color: #40C4FF; opacity: 0.55; transparent: true; roughness: 0.05; metalness: 0.3"
+    animation="property: material.opacity; from: 0.45; to: 0.65; dir: alternate; dur: 2800; loop: true; easing: easeInOutSine">
+  </a-plane>
+  <!-- Water shimmer -->
+  <a-plane position="0 0.22 20" rotation="-90 0 0" width="11.6" height="5.6"
+    material="color: #80D8FF; opacity: 0.2; transparent: true"
+    animation="property: rotation; from: -90 0 0; to: -90 2 0; dir: alternate; dur: 4000; loop: true">
+  </a-plane>
+  <!-- Pool rim -->
+  <a-box position="0 0.25 17" width="12.4" height="0.2" depth="0.4"
+    material="color: #E8E0D4; roughness: 0.7" shadow="cast: true">
+  </a-box>
+  <a-box position="0 0.25 23" width="12.4" height="0.2" depth="0.4"
+    material="color: #E8E0D4; roughness: 0.7" shadow="cast: true">
+  </a-box>
+  <a-box position="-6.2 0.25 20" width="0.4" height="0.2" depth="6.4"
+    material="color: #E8E0D4; roughness: 0.7" shadow="cast: true">
+  </a-box>
+  <a-box position="6.2 0.25 20" width="0.4" height="0.2" depth="6.4"
+    material="color: #E8E0D4; roughness: 0.7" shadow="cast: true">
+  </a-box>
+
+  <!-- Pool deck -->
+  <a-plane position="0 0.02 21" rotation="-90 0 0" width="20" height="12"
+    material="color: #E5DDD0; roughness: 0.85" shadow="receive: true">
+  </a-plane>
+
+  <!-- ========== POOL LIGHTING ========== -->
+  <a-light type="point" position="0 0.5 20" color="#00BFFF" intensity="0.8" distance="8"></a-light>
+
+  <!-- ========== LOUNGE CHAIRS ========== -->
+  <!-- Left chair -->
+  <a-box position="-8 0.25 20" width="1.8" height="0.08" depth="0.7"
+    material="color: #F5F0E8; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="-8 0.6 20.2" width="1.8" height="0.7" depth="0.08"
+    rotation="-30 0 0" material="color: #F5F0E8; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <!-- Chair legs -->
+  <a-cylinder position="-8.8 0.12 20.3" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-7.2 0.12 20.3" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-8.8 0.12 19.7" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-7.2 0.12 19.7" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+
+  <!-- Right chair -->
+  <a-box position="8 0.25 20" width="1.8" height="0.08" depth="0.7"
+    material="color: #F5F0E8; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="8 0.6 20.2" width="1.8" height="0.7" depth="0.08"
+    rotation="-30 0 0" material="color: #F5F0E8; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-cylinder position="8.8 0.12 20.3" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="7.2 0.12 20.3" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="8.8 0.12 19.7" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="7.2 0.12 19.7" radius="0.04" height="0.25"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+
+  <!-- Umbrella left -->
+  <a-cylinder position="-8 0.9 19" radius="0.04" height="1.8"
+    material="color: #2C2C2A; roughness: 0.5">
+  </a-cylinder>
+  <a-cone position="-8 1.9 19" radius-bottom="1.2" radius-top="0.05" height="0.6"
+    material="color: #D4A44C; roughness: 0.8" shadow="cast: true">
+  </a-cone>
+
+  <!-- Umbrella right -->
+  <a-cylinder position="8 0.9 19" radius="0.04" height="1.8"
+    material="color: #2C2C2A; roughness: 0.5">
+  </a-cylinder>
+  <a-cone position="8 1.9 19" radius-bottom="1.2" radius-top="0.05" height="0.6"
+    material="color: #D4A44C; roughness: 0.8" shadow="cast: true">
+  </a-cone>
+
+  <!-- Side table between chairs -->
+  <a-cylinder position="0 0.35 20" radius="0.3" height="0.6"
+    material="color: #E8DDD0; roughness: 0.7" shadow="cast: true">
+  </a-cylinder>
+  <a-cylinder position="0 0.62 20" radius="0.35" height="0.04"
+    material="color: #D4C8B8; roughness: 0.6" shadow="cast: true">
+  </a-cylinder>
+
+  <!-- ========== INTERIOR FURNITURE (visible thru glass) ========== -->
+  <!-- Living room sofa -->
+  <a-box position="-2 0.5 3" width="4" height="0.8" depth="1.2"
+    material="color: #4A4540; roughness: 0.9" shadow="cast: true; receive: true">
+  </a-box>
+  <a-box position="-2 0.95 3.4" width="4" height="0.6" depth="0.2"
+    material="color: #4A4540; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <!-- Coffee table -->
+  <a-box position="-2 0.35 1.5" width="2" height="0.06" depth="1"
+    material="color: #1A1A18; roughness: 0.2; metalness: 0.5" shadow="cast: true">
+  </a-box>
+  <a-cylinder position="-2 0.17 1.5" radius="0.04" height="0.35"
+    material="color: #888; roughness: 0.2; metalness: 0.9">
+  </a-cylinder>
+  <!-- TV wall -->
+  <a-box position="-2 2 -5.8" width="4" height="2" depth="0.08"
+    material="color: #0A0A08; roughness: 0.05; metalness: 0.6" shadow="cast: true">
+  </a-box>
+  <!-- TV glow -->
+  <a-plane position="-2 2 -5.75" width="3.8" height="1.8"
+    material="color: #1A4A8A; opacity: 0.7; transparent: true">
+  </a-plane>
+  <!-- Kitchen island -->
+  <a-box position="5 0.55 0" width="4" height="1.1" depth="1.4"
+    material="color: #2C2C2A; roughness: 0.2; metalness: 0.4" shadow="cast: true; receive: true">
+  </a-box>
+  <!-- Kitchen countertop -->
+  <a-box position="5 1.12 0" width="4.1" height="0.08" depth="1.5"
+    material="color: #F0EDE8; roughness: 0.1; metalness: 0.3" shadow="cast: true">
+  </a-box>
+  <!-- Pendant lights over island -->
+  <a-sphere position="4 3.2 0" radius="0.15"
+    material="color: #FFF0D0; emissive: #FFF0D0; emissiveIntensity: 0.8">
+  </a-sphere>
+  <a-sphere position="6 3.2 0" radius="0.15"
+    material="color: #FFF0D0; emissive: #FFF0D0; emissiveIntensity: 0.8">
+  </a-sphere>
+  <a-light type="point" position="5 3 0" intensity="0.6" color="#FFF0D0" distance="5"></a-light>
+
+  <!-- Dining table -->
+  <a-box position="-6 0.45 -1" width="2.5" height="0.08" depth="1.2"
+    material="color: #5C3A1E; roughness: 0.6; metalness: 0.1" shadow="cast: true">
+  </a-box>
+  <!-- Dining chairs x4 -->
+  <a-box position="-6 0.45 -2" width="0.6" height="0.8" depth="0.6"
+    material="color: #2C2C2A; roughness: 0.9">
+  </a-box>
+  <a-box position="-6 0.45 0" width="0.6" height="0.8" depth="0.6"
+    material="color: #2C2C2A; roughness: 0.9">
+  </a-box>
+
+  <!-- Staircase visible inside -->
+  <a-box position="6 2.5 -3" width="2" height="5" depth="3"
+    material="color: #E8E0D4; roughness: 0.8" shadow="cast: true; receive: true">
+  </a-box>
+  <a-box position="6 5.1 -1.7" width="2" height="0.1" depth="0.3"
+    material="color: #C8A040; roughness: 0.3; metalness: 0.5">
+  </a-box>
+  <a-box position="6 4.8 -2" width="2" height="0.1" depth="0.3"
+    material="color: #C8A040; roughness: 0.3; metalness: 0.5">
+  </a-box>
+
+  <!-- ========== OUTDOOR DINING ========== -->
+  <a-cylinder position="-6 0.45 13" radius="1.1" height="0.06"
+    material="color: #5C3A1E; roughness: 0.5; metalness: 0.2" shadow="cast: true">
+  </a-cylinder>
+  <a-cylinder position="-6 0.22 13" radius="0.05" height="0.44"
+    material="color: #888; roughness: 0.3; metalness: 0.8">
+  </a-cylinder>
+  <!-- Outdoor chairs x4 -->
+  <a-box position="-6 0.45 11.8" width="0.55" height="0.7" depth="0.55"
+    material="color: #F0EDE8; roughness: 0.8">
+  </a-box>
+  <a-box position="-6 0.45 14.2" width="0.55" height="0.7" depth="0.55"
+    material="color: #F0EDE8; roughness: 0.8">
+  </a-box>
+  <a-box position="-7.2 0.45 13" width="0.55" height="0.7" depth="0.55"
+    material="color: #F0EDE8; roughness: 0.8">
+  </a-box>
+  <a-box position="-4.8 0.45 13" width="0.55" height="0.7" depth="0.55"
+    material="color: #F0EDE8; roughness: 0.8">
+  </a-box>
+
+  <!-- ========== BBQ AREA ========== -->
+  <a-box position="8 0.6 13" width="1.2" height="1" depth="0.6"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.7" shadow="cast: true">
+  </a-box>
+  <a-cylinder position="8 1.15 13" radius="0.45" height="0.1"
+    material="color: #1A1A18; roughness: 0.3; metalness: 0.6">
+  </a-cylinder>
+
+  <!-- ========== PALM TREES ========== -->
+  <!-- Tree 1 - Front Left -->
+  <a-cylinder position="-14 4 14" radius="0.22" height="8"
+    material="color: #7A5C3A; roughness: 1" shadow="cast: true">
+  </a-cylinder>
+  <a-sphere position="-14.5 8.5 13.5" radius="2.2"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-sphere>
+  <a-sphere position="-13 8.2 14.5" radius="1.8"
+    material="color: #3A8C3A; roughness: 1" shadow="cast: true">
+  </a-sphere>
+
+  <!-- Tree 2 - Front Right -->
+  <a-cylinder position="14 3.5 14" radius="0.2" height="7"
+    material="color: #7A5C3A; roughness: 1" shadow="cast: true">
+  </a-cylinder>
+  <a-sphere position="14.5 7.8 13.5" radius="2"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-sphere>
+  <a-sphere position="13.2 7.5 14.5" radius="1.6"
+    material="color: #3A8C3A; roughness: 1" shadow="cast: true">
+  </a-sphere>
+
+  <!-- Tree 3 - Pool Left -->
+  <a-cylinder position="-14 4 20" radius="0.22" height="8"
+    material="color: #7A5C3A; roughness: 1" shadow="cast: true">
+  </a-cylinder>
+  <a-sphere position="-14.5 8.5 19.5" radius="2.2"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-sphere>
+
+  <!-- Tree 4 - Rear Right -->
+  <a-cylinder position="14 4 -12" radius="0.22" height="8"
+    material="color: #7A5C3A; roughness: 1" shadow="cast: true">
+  </a-cylinder>
+  <a-sphere position="14.5 8.5 -12.5" radius="2.2"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-sphere>
+
+  <!-- Small accent shrubs -->
+  <a-sphere position="-9.5 0.5 6" radius="0.6" material="color: #3A8C3A; roughness: 1"></a-sphere>
+  <a-sphere position="9.5 0.5 6" radius="0.6" material="color: #3A8C3A; roughness: 1"></a-sphere>
+  <a-sphere position="-9.5 0.5 8" radius="0.5" material="color: #2D7A2D; roughness: 1"></a-sphere>
+  <a-sphere position="9.5 0.5 8" radius="0.5" material="color: #2D7A2D; roughness: 1"></a-sphere>
+  <!-- Hedges along sides -->
+  <a-box position="-10 0.5 -5" width="0.8" height="1" depth="14"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-box>
+  <a-box position="10 0.5 -5" width="0.8" height="1" depth="14"
+    material="color: #2D7A2D; roughness: 1" shadow="cast: true">
+  </a-box>
+
+  <!-- ========== BOUNDARY WALL ========== -->
+  <a-box position="0 0.8 -18" width="36" height="1.6" depth="0.3"
+    material="color: #E0D8CC; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="0 0.8 30" width="36" height="1.6" depth="0.3"
+    material="color: #E0D8CC; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="-18 0.8 6" width="0.3" height="1.6" depth="48"
+    material="color: #E0D8CC; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <a-box position="18 0.8 6" width="0.3" height="1.6" depth="48"
+    material="color: #E0D8CC; roughness: 0.9" shadow="cast: true">
+  </a-box>
+  <!-- Gate posts -->
+  <a-box position="-2 1 30" width="0.5" height="2" depth="0.5"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.6" shadow="cast: true">
+  </a-box>
+  <a-box position="2 1 30" width="0.5" height="2" depth="0.5"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.6" shadow="cast: true">
+  </a-box>
+
+  <!-- ========== TERRACE LIGHTS ========== -->
+  <!-- Bollard lights along terrace -->
+  <a-cylinder position="-6 0.5 9" radius="0.06" height="1"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.8">
+  </a-cylinder>
+  <a-sphere position="-6 1.1 9" radius="0.12"
+    material="color: #FFF0D0; emissive: #FFF0D0; emissiveIntensity: 0.9">
+  </a-sphere>
+  <a-light type="point" position="-6 1.1 9" intensity="0.4" color="#FFF0D0" distance="4"></a-light>
+
+  <a-cylinder position="6 0.5 9" radius="0.06" height="1"
+    material="color: #1A1A18; roughness: 0.4; metalness: 0.8">
+  </a-cylinder>
+  <a-sphere position="6 1.1 9" radius="0.12"
+    material="color: #FFF0D0; emissive: #FFF0D0; emissiveIntensity: 0.9">
+  </a-sphere>
+  <a-light type="point" position="6 1.1 9" intensity="0.4" color="#FFF0D0" distance="4"></a-light>
+
+  <!-- Pool edge lights -->
+  <a-sphere position="-6 0.4 17.2" radius="0.1"
+    material="color: #80D8FF; emissive: #80D8FF; emissiveIntensity: 0.8">
+  </a-sphere>
+  <a-sphere position="6 0.4 17.2" radius="0.1"
+    material="color: #80D8FF; emissive: #80D8FF; emissiveIntensity: 0.8">
+  </a-sphere>
+  <a-sphere position="-6 0.4 22.8" radius="0.1"
+    material="color: #80D8FF; emissive: #80D8FF; emissiveIntensity: 0.8">
+  </a-sphere>
+  <a-sphere position="6 0.4 22.8" radius="0.1"
+    material="color: #80D8FF; emissive: #80D8FF; emissiveIntensity: 0.8">
+  </a-sphere>
+
+  <!-- ========== UPPER TERRACE / BALCONY ========== -->
+  <!-- Balcony floor over entrance area -->
+  <a-plane position="3.5 8.2 9" rotation="-90 0 0" width="5" height="5"
+    material="color: #E8E0D4; roughness: 0.8" shadow="receive: true">
+  </a-plane>
+  <!-- Balcony glass railing -->
+  <a-box position="3.5 8.75 11.5" width="5" height="1.1" depth="0.05"
+    material="color: #A8D8EA; opacity: 0.4; transparent: true; roughness: 0.05">
+  </a-box>
+  <a-box position="1 8.75 9" width="0.05" height="1.1" depth="5"
+    material="color: #A8D8EA; opacity: 0.4; transparent: true; roughness: 0.05">
+  </a-box>
+  <a-box position="6 8.75 9" width="0.05" height="1.1" depth="5"
+    material="color: #A8D8EA; opacity: 0.4; transparent: true; roughness: 0.05">
+  </a-box>
+  <!-- Railing top rail -->
+  <a-box position="3.5 9.35 11.5" width="5.1" height="0.08" depth="0.12"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.7">
+  </a-box>
+  <a-box position="1 9.35 9" width="0.12" height="0.08" depth="5.1"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.7">
+  </a-box>
+  <a-box position="6 9.35 9" width="0.12" height="0.08" depth="5.1"
+    material="color: #2C2C2A; roughness: 0.4; metalness: 0.7">
+  </a-box>
+
+  <!-- Balcony chair -->
+  <a-box position="3.5 8.55 10" width="0.7" height="0.7" depth="0.7"
+    material="color: #F0EDE8; roughness: 0.9">
+  </a-box>
+  <!-- Side table -->
+  <a-cylinder position="4.5 8.45 10.2" radius="0.25" height="0.4"
+    material="color: #E8DDD0; roughness: 0.6">
+  </a-cylinder>
+
+  <!-- ========== PARKING / GARAGE AREA ========== -->
+  <a-plane position="0 0.015 26" rotation="-90 0 0" width="10" height="6"
+    material="color: #B8B2A8; roughness: 0.9" shadow="receive: true">
+  </a-plane>
+  <!-- Parked car silhouette -->
+  <a-box position="-2.5 0.4 27" width="3.5" height="0.8" depth="1.8"
+    material="color: #1A3A5C; roughness: 0.3; metalness: 0.6" shadow="cast: true; receive: true">
+  </a-box>
+  <a-box position="-2.5 0.85 27" width="2.2" height="0.6" depth="1.7"
+    material="color: #1A3A5C; roughness: 0.15; metalness: 0.5" shadow="cast: true">
+  </a-box>
+  <!-- Car windows -->
+  <a-box position="-2.5 0.9 26.2" width="1.8" height="0.4" depth="0.04"
+    material="color: #A8C8E8; opacity: 0.5; transparent: true; roughness: 0.05">
+  </a-box>
+  <!-- Wheels -->
+  <a-cylinder position="-4 0.22 27.8" radius="0.28" height="0.2"
+    rotation="0 0 90" material="color: #1A1A18; roughness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-1 0.22 27.8" radius="0.28" height="0.2"
+    rotation="0 0 90" material="color: #1A1A18; roughness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-4 0.22 26.2" radius="0.28" height="0.2"
+    rotation="0 0 90" material="color: #1A1A18; roughness: 0.8">
+  </a-cylinder>
+  <a-cylinder position="-1 0.22 26.2" radius="0.28" height="0.2"
+    rotation="0 0 90" material="color: #1A1A18; roughness: 0.8">
+  </a-cylinder>
+
+  <!-- ========== CLOUDS ========== -->
+  <a-sphere position="-20 22 -30" radius="5"
+    material="color: #ffffff; opacity: 0.85; transparent: true" shadow="cast: false">
+  </a-sphere>
+  <a-sphere position="-15 22 -30" radius="4"
+    material="color: #ffffff; opacity: 0.85; transparent: true">
+  </a-sphere>
+  <a-sphere position="-25 21 -30" radius="3.5"
+    material="color: #ffffff; opacity: 0.8; transparent: true">
+  </a-sphere>
+  <a-sphere position="20 23 -40" radius="6"
+    material="color: #ffffff; opacity: 0.8; transparent: true">
+  </a-sphere>
+  <a-sphere position="27 22 -40" radius="4.5"
+    material="color: #ffffff; opacity: 0.75; transparent: true">
+  </a-sphere>
+
+  <!-- ========== CAMERA ========== -->
+  <a-camera id="cam" position="0 1.7 35"
+    wasd-controls="acceleration: 18"
+    look-controls="pointerLockEnabled: false">
+    <a-cursor color="#ffffff" opacity="0.6" radius-inner="0.01" radius-outer="0.02"></a-cursor>
+  </a-camera>
+
+</a-scene>
+
+<script>
+const tourPoints = [
+  { pos: {x:0,  y:1.7, z:35}, rot: {x:0, y:0,   z:0} },
+  { pos: {x:0,  y:1.7, z:18}, rot: {x:-5,y:0,   z:0} },
+  { pos: {x:3.5,y:1.7, z:8},  rot: {x:0, y:180,  z:0} },
+  { pos: {x:0,  y:1.7, z:3},  rot: {x:0, y:180,  z:0} },
+  { pos: {x:-6, y:1.7, z:3},  rot: {x:0, y:-90,  z:0} },
+  { pos: {x:0,  y:8.5, z:12}, rot: {x:-20,y:180, z:0} },
+  { pos: {x:0,  y:1.7, z:25}, rot: {x:-15,y:0,   z:0} },
+  { pos: {x:-9, y:1.7, z:20}, rot: {x:0, y:90,   z:0} },
+];
+let tourIdx = 0, touring = false, tourTimer = null;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function startTour() {
+  touring = true;
+  tourIdx = 0;
+  document.getElementById('tour-btn').textContent = 'Stop Tour';
+  document.getElementById('tour-btn').onclick = stopTour;
+  moveTo(tourPoints[0]);
+  tourTimer = setInterval(() => {
+    tourIdx = (tourIdx + 1) % tourPoints.length;
+    moveTo(tourPoints[tourIdx]);
+  }, 3500);
+}
+
+function stopTour() {
+  touring = false;
+  if (tourTimer) clearInterval(tourTimer);
+  document.getElementById('tour-btn').textContent = 'Auto Tour';
+  document.getElementById('tour-btn').onclick = startTour;
+}
+
+function moveTo(pt) {
+  const cam = document.getElementById('cam');
+  const start = { ...cam.getAttribute('position') };
+  const startRot = { ...cam.components['look-controls'].pitchObject.rotation };
+  const dur = 2800;
+  const t0 = performance.now();
+  function step(now) {
+    const t = Math.min((now - t0) / dur, 1);
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    cam.setAttribute('position', {
+      x: lerp(start.x, pt.pos.x, ease),
+      y: lerp(start.y, pt.pos.y, ease),
+      z: lerp(start.z, pt.pos.z, ease)
+    });
+    if (t < 1 && touring) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+</script>
 </body>
 </html>
